@@ -51,9 +51,10 @@ jobs:
       - name: 公開フォルダを作成（配信ファイルのみ）
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js scaler.js clips.js recipes.js recipes.json \
-             manifest.webmanifest sw.js icon.svg robots.txt _site/
+          # 配信に必要なファイル種別をまとめてコピー（crawl.py等は含まれない）
+          cp *.html *.css *.js *.json *.webmanifest *.svg robots.txt _site/ 2>/dev/null || true
           touch _site/.nojekyll
+          echo "=== _site 内容 ===" && ls -1 _site
 
       - name: Pages 用アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
