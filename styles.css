@@ -163,6 +163,18 @@ ol.steps li { padding: 6px 0; font-size: 15px; }
 .warn2 { font-size: 11px; color: var(--accent2); }
 .btn.add.sm { width: auto; flex: 0 0 auto; padding: 8px 12px; font-size: 13px; }
 
+/* 合う副菜 */
+.pair-card .pair-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+.pair-card .pair-row:active { opacity: .7; }
+.pair-reason { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; min-width: 62px; text-align: center; color: #fff; background: var(--muted); }
+.pair-reason.r-rule { background: #79c0e6; color: #08283a; }
+.pair-reason.r-omakase { background: #9a8f84; color: #fff; }
+.pair-reason.r-green { background: #6fbf73; color: #06210a; }
+.pair-reason.r-root { background: #e0a020; color: #1a1207; }
+.pair-main { flex: 1; min-width: 0; overflow: hidden; }
+.pair-main b { font-size: 14px; }
+.pair-arrow { flex: 0 0 auto; color: var(--accent2); font-weight: 700; }
+
 /* 換算ツール */
 .serv-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 15px; }
 .serv-row label { display: inline-flex; align-items: center; gap: 6px; }

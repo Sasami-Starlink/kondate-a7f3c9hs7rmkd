@@ -2,13 +2,13 @@ name: レシピ更新＆自動公開
 
 on:
   schedule:
-    - cron: "0 21 * * 0"
-  workflow_dispatch: {}
+    - cron: "0 21 * * 0"   # 毎週 日曜21:00 UTC（＝月曜6:00 JST）に自動収集
+  workflow_dispatch: {}      # 手動で「今すぐ更新」も可能
   push:
-    branches: [ main ]
+    branches: [ main ]        # コード更新のたびに再公開
 
 permissions:
-  contents: write
+  contents: write   # recipes.json のコミットに必要
   pages: write
   id-token: write
 

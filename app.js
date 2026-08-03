@@ -85,6 +85,7 @@ function getSuggestions() {
   const pool = POOL.filter((r) =>
     r.type === state.type &&
     passesExclude(r) &&
+    (state.type !== "side" || typeof isRealSide !== "function" || isRealSide(r)) &&
     (!f.genre || r.genre === f.genre) &&
     (!f.method || matchMethod(r, f.method))
   );
@@ -314,6 +315,7 @@ function renderFullDetail(r) {
       <h3 class="sec">作り方</h3>
       <ol class="steps">${steps}</ol>
     </div>
+    ${r.type === "main" ? renderPairedSides(r) : ""}
     <div class="choices">
       <button class="btn add" onclick="toggleClip('${r.id}')">${isClipped(r.id) ? "📎 クリップ済み（外す）" : "📎 この料理をクリップ"}</button>
       <button class="btn add" onclick="addHistory('${r.id}')">🍳 作ったことにする</button>
@@ -337,6 +339,7 @@ function renderLinkDetail(r) {
       <a class="ref big" href="${r.url}" target="_blank" rel="noopener">🔗 ${r.source} でレシピを見る</a>
       <button class="btn add" style="width:100%;margin-top:10px" onclick="openScaler()">📷 材料欄を撮って人数分に換算</button>
     </div>
+    ${r.type === "main" ? renderPairedSides(r) : ""}
     <div class="choices">
       <button class="btn add" onclick="toggleClip('${r.id}')">${isClipped(r.id) ? "📎 クリップ済み（外す）" : "📎 この料理をクリップ"}</button>
       <button class="btn add" onclick="addHistory('${r.id}')">🍳 作ったことにする</button>
