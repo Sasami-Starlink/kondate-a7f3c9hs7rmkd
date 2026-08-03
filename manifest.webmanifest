@@ -1,0 +1,13 @@
+{
+  "name": "こんだて提案｜男子高校生15人分",
+  "short_name": "こんだて",
+  "description": "安く手軽な洋食・中華中心の献立を、実在レシピ付きで提案します。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#14110f",
+  "theme_color": "#e8532b",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

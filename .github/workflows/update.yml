@@ -1,0 +1,63 @@
+name: レシピ更新＆自動公開
+
+on:
+  schedule:
+    - cron: "0 21 * * 0"   # 毎週 日曜21:00 UTC（＝月曜6:00 JST）に自動収集
+  workflow_dispatch: {}      # 手動で「今すぐ更新」も可能
+  push:
+    branches: [ main ]        # コード更新のたびに再公開
+
+permissions:
+  contents: write   # recipes.json のコミットに必要
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: リポジトリ取得
+        uses: actions/checkout@v4
+
+      - name: Python 準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: レシピ収集（crawl.py）
+        run: python3 crawl.py
+
+      - name: recipes.json の更新をコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add recipes.json
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "chore: recipes.json 自動更新"
+            git push
+          fi
+
+      - name: 公開フォルダを作成（配信ファイルのみ）
+        run: |
+          mkdir -p _site
+          cp index.html styles.css app.js scaler.js clips.js recipes.js recipes.json \
+             manifest.webmanifest sw.js icon.svg robots.txt _site/
+          touch _site/.nojekyll
+
+      - name: Pages 用アーティファクトをアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: GitHub Pages へデプロイ
+        id: deploy
+        uses: actions/deploy-pages@v4
