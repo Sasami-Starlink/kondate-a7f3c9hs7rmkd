@@ -2,13 +2,13 @@ name: レシピ更新＆自動公開
 
 on:
   schedule:
-    - cron: "0 21 * * 0"   # 毎週 日曜21:00 UTC（＝月曜6:00 JST）に自動収集
-  workflow_dispatch: {}      # 手動で「今すぐ更新」も可能
+    - cron: "0 21 * * 0"
+  workflow_dispatch: {}
   push:
-    branches: [ main ]        # コード更新のたびに再公開
+    branches: [ main ]
 
 permissions:
-  contents: write   # recipes.json のコミットに必要
+  contents: write
   pages: write
   id-token: write
 
@@ -34,7 +34,8 @@ jobs:
       - name: レシピ収集（crawl.py）
         run: python3 crawl.py
 
-      - name: recipes.json の更新をコミット
+      - name: recipes.json の更新をコミット（失敗しても公開は続行）
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -43,7 +44,8 @@ jobs:
             echo "変更なし"
           else
             git commit -m "chore: recipes.json 自動更新"
-            git push
+            git pull --rebase --autostash origin main || true
+            git push || echo "push はスキップ（次回反映されます）"
           fi
 
       - name: 公開フォルダを作成（配信ファイルのみ）
