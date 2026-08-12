@@ -97,10 +97,16 @@ function getSuggestions() {
   const isPref = (r) => r.source === "リュウジ" || r.source === "だれウマ";
   const thin = (r) => !(cooked.has(r.id) && Math.random() < 0.7); // 作ったものは約70%間引く
 
+  // 同じ素材で「別の候補」を3回以上更新したら、リュウジ/だれウマは作った履歴も出してよい
+  const sugKey = state.type + "|" + [...state.picked].sort().join(",") + "|" + JSON.stringify(state.filters || {});
+  if (state._sugKey !== sugKey) { state._sugKey = sugKey; state._sugN = 0; }
+  state._sugN++;
+  const allowCookedPref = (state._sugN - 1) >= 3; // 初回=1、更新3回以上でtrue
+
   // 直近に出していないものを優先（足りなければ許容）
   let cands = matched.filter((r) => !shown.has(r.id));
   if (cands.length < 3) cands = matched.slice();
-  let pref = shuffle(cands.filter(isPref).filter(thin));
+  let pref = shuffle(cands.filter(isPref).filter((r) => allowCookedPref || thin(r)));
   let rest = shuffle(cands.filter((r) => !isPref(r)).filter(thin));
   if (!pref.length) pref = shuffle(cands.filter(isPref));
   if (!rest.length) rest = shuffle(cands.filter((r) => !isPref(r)));
