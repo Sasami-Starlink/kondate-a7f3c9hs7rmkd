@@ -130,6 +130,55 @@ function render() {
   if (state.step === "clipsum") return renderClipSummary(app);
   if (state.step === "import") return renderImport(app);
   if (state.step === "prefs") return renderPrefs(app);
+  if (state.step === "search") return renderSearch();
+}
+
+// ---------- 料理名で検索 ----------
+function openSearch() { state.step = "search"; render(); }
+function onSearchInput(v) {
+  state.query = v;
+  const box = document.getElementById("search-results");
+  if (box) box.innerHTML = searchResultsHtml(); // 入力欄は再描画せずフォーカス維持
+}
+function searchResultsHtml() {
+  const q = (state.query || "").trim();
+  if (!q) return `<p class="mini">料理名やキーワードを入力してください（例：唐揚げ、ナムル、麻婆、ポテト）</p>`;
+  let hits = POOL.filter((r) => passesExclude(r) &&
+    ((r.title || "").includes(q) || (r.tags || []).some((t) => t.includes(q))));
+  // タイトル先頭一致・完全一致を上位に
+  hits.sort((a, b) => score(b, q) - score(a, q));
+  const shown = hits.slice(0, 40);
+  if (!hits.length) return `<p class="mini">「${escapeHtml(q)}」に一致するレシピはありませんでした。別の言葉でお試しください。</p>`;
+  const cards = shown.map((r) => {
+    const tags = (r.tags || []).slice(0, 4).join("・");
+    return `<div class="card recipe" onclick="openDetail('${r.id}')">
+      <div class="card-top">${badge(r.source)}<span class="tag">${r.type === "main" ? "主菜" : "副菜"}・${r.genre}</span></div>
+      <h3>${escapeHtml(r.title)}</h3>
+      <p class="time">${r.time ? "⏱ " + r.time + "　｜　" : ""}${tags}</p>
+      <span class="link-arrow">${r.mode === "full" ? "レシピを見る →" : "本家レシピへ →"}</span>
+    </div>`;
+  }).join("");
+  return `<p class="mini">${hits.length}件ヒット${hits.length > 40 ? "（上位40件を表示）" : ""}</p>${cards}`;
+}
+function score(r, q) {
+  const t = r.title || "";
+  if (t === q) return 3;
+  if (t.startsWith(q)) return 2;
+  if (t.includes(q)) return 1;
+  return 0;
+}
+function renderSearch() {
+  app.innerHTML = `
+    ${bubble("料理名で探せます、ユーザーさん。<br>キーワードを入力してください。")}
+    <div class="freeadd">
+      <input id="searchbox" class="freeinput" type="search" enterkeyhint="search"
+        placeholder="料理名で検索（例：唐揚げ、ナムル、麻婆）"
+        value="${escapeHtml(state.query || "")}" oninput="onSearchInput(this.value)" />
+    </div>
+    <div id="search-results">${searchResultsHtml()}</div>
+    <button class="btn ghost" onclick="go('welcome')">← ホーム</button>`;
+  const el = document.getElementById("searchbox");
+  if (el) { el.focus(); const v = el.value; el.value = ""; el.value = v; } // キャレットを末尾へ
 }
 function bubble(t) { return `<div class="bubble bot">${t}</div>`; }
 function badge(src) {
@@ -160,6 +209,7 @@ function renderWelcome() {
     </div>
     ${renderServing()}
     <button class="btn primary" onclick="go('type')">献立を提案してもらう →</button>
+    <button class="btn ghost" onclick="openSearch()">🔍 料理名で検索</button>
     <div class="choices">
       <button class="btn ghost" onclick="openClips()">📎 クリップ一覧（${clipCount()}）</button>
       <button class="btn ghost" onclick="openScaler()">📷 材料を換算</button>
