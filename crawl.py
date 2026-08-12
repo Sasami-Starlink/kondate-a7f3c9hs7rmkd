@@ -32,13 +32,14 @@ OUT = os.path.join(HERE, "recipes.json")
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                     "AppleWebKit/537.36 kondate-personal-use (non-commercial)"}
 SLEEP = 0.5  # 秒。サイトに負荷をかけないための待機
+MAX_PER_SOURCE = 600  # 1ソースあたりの保存上限（偏り/肥大化の防止）
 
 # ---- 収集件数（お好みで調整）----
 LIMITS = {
     "リュウジ": 150,   # wp-json から新着順
     "だれウマ": 80,    # sitemap経由（過去記事まで）
-    "Nadia": 100,      # sitemapからランダム抽出
-    "クラシル": 100,   # sitemapからランダム抽出
+    "Nadia": 200,      # sitemapからランダム抽出（600に向けて多めに収集）
+    "クラシル": 100,   # sitemapからランダム抽出（既に上限付近）
 }
 
 # ========== フィルタ設定（自由に編集可） ==========
@@ -356,6 +357,23 @@ def crawl_jsonld_site(source, index_url, recipe_pat, limit):
     return out
 
 
+def cap_by_source(recipes, cap):
+    """ソースごとに最大 cap 件に制限。日付ありは新しい順優先、無しはランダムに残す。"""
+    groups = {}
+    for r in recipes:
+        groups.setdefault(r["source"], []).append(r)
+    out = []
+    for src, items in groups.items():
+        if len(items) <= cap:
+            out += items
+            continue
+        dated = sorted([x for x in items if x.get("date")], key=lambda x: x["date"], reverse=True)
+        undated = [x for x in items if not x.get("date")]
+        random.shuffle(undated)  # 収集分を毎回入れ替えて新鮮に保つ
+        out += (dated + undated)[:cap]
+    return out
+
+
 def main():
     fresh = "--fresh" in sys.argv
     collected = []
@@ -381,7 +399,7 @@ def main():
         if r["url"] not in by_url:
             added += 1
         by_url[r["url"]] = r
-    recipes = list(by_url.values())
+    recipes = cap_by_source(list(by_url.values()), MAX_PER_SOURCE)
 
     payload = {
         "generatedAt": time.strftime("%Y-%m-%d %H:%M:%S"),

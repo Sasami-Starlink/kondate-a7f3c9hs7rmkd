@@ -93,17 +93,28 @@ function getSuggestions() {
     ? pool.filter((r) => recipeMatches(r, state.picked))
     : pool;
   const shown = getShown();
-  // 直近に出していないものを優先
-  const fresh = matched.filter((r) => !shown.has(r.id));
-  let base = fresh.length >= 3 ? fresh : matched.slice();
-  shuffle(base);
-  let list = base.slice(0, 3);
-  // 2品未満なら同カテゴリで補完
-  if (list.length < 2) {
-    const ids = new Set(list.map((r) => r.id));
-    const extra = shuffle(pool.filter((r) => !ids.has(r.id))).slice(0, 3 - list.length);
-    list = list.concat(extra);
-  }
+  const cooked = new Set((typeof getHistory === "function" ? getHistory() : []).slice(0, 20).map((h) => h.id));
+  const isPref = (r) => r.source === "リュウジ" || r.source === "だれウマ";
+  const thin = (r) => !(cooked.has(r.id) && Math.random() < 0.7); // 作ったものは約70%間引く
+
+  // 直近に出していないものを優先（足りなければ許容）
+  let cands = matched.filter((r) => !shown.has(r.id));
+  if (cands.length < 3) cands = matched.slice();
+  let pref = shuffle(cands.filter(isPref).filter(thin));
+  let rest = shuffle(cands.filter((r) => !isPref(r)).filter(thin));
+  if (!pref.length) pref = shuffle(cands.filter(isPref));
+  if (!rest.length) rest = shuffle(cands.filter((r) => !isPref(r)));
+
+  const list = [];
+  const used = new Set();
+  const push = (r) => { if (r && list.length < 3 && !used.has(r.id)) { used.add(r.id); list.push(r); } };
+  // リュウジ/だれウマ から 1〜2件を確保（あれば）
+  const prefTarget = pref.length ? Math.min(pref.length, 1 + Math.floor(Math.random() * 2)) : 0;
+  for (let i = 0; i < prefTarget; i++) push(pref[i]);
+  for (const r of rest) push(r);          // 残りは他ソースで
+  for (const r of pref) push(r);          // 足りなければ優先ソースの残りで
+  if (list.length < 2) for (const r of shuffle(pool)) push(r);
+  shuffle(list);
   markShown(list.map((r) => r.id));
   return { list, matchedCount: matched.length };
 }

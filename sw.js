@@ -1,5 +1,5 @@
 // オフライン対応の簡易 Service Worker
-const CACHE = "kondate-v7";
+const CACHE = "kondate-v8";
 const ASSETS = [
   "./",
   "./index.html",
