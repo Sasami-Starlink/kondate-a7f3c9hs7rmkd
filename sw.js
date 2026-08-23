@@ -1,5 +1,5 @@
 // オフライン対応の簡易 Service Worker
-const CACHE = "kondate-v11";
+const CACHE = "kondate-v12";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./pairing.js",
   "./recipes.js",
   "./recipes.json",
+  "./blocklist.json",
   "./manifest.webmanifest",
   "./icon.svg",
 ];
@@ -32,8 +33,8 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   // 外部（レシピサイト等）はキャッシュせずネットワークへ
   if (url.origin !== location.origin) return;
-  // recipes.json は再クロールを反映するためネット優先（失敗時のみキャッシュ）
-  if (url.pathname.endsWith("recipes.json")) {
+  // recipes.json / blocklist.json は最新反映のためネット優先（失敗時のみキャッシュ）
+  if (url.pathname.endsWith("recipes.json") || url.pathname.endsWith("blocklist.json")) {
     e.respondWith(
       fetch(e.request).then((r) => {
         const copy = r.clone();

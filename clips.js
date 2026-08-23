@@ -39,6 +39,7 @@ function toggleSelected(id) { const s = getSelected(); s[id] = !s[id]; lsSet("cl
 // ---------- 「今後出さない」個別レシピ非表示 ----------
 function getBlocked() { return lsGet("blocked", []); }
 function isBlocked(r) {
+  if (window.SHARED_BLOCKED && r.url && window.SHARED_BLOCKED.has(r.url)) return true; // 家族共通
   const b = getBlocked();
   return b.some((x) => x.id === r.id || (x.url && r.url && x.url === r.url));
 }

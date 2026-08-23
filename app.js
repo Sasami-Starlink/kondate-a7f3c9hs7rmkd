@@ -35,6 +35,11 @@ async function loadData() {
   const curatedUrls = new Set(curated.map((r) => r.url));
   crawled = crawled.filter((r) => !curatedUrls.has(r.url));
   POOL = [...curated, ...crawled];
+  // 家族共通ブロックリスト（全端末で非表示）
+  try {
+    const bl = await (await fetch("./blocklist.json", { cache: "no-store" })).json();
+    window.SHARED_BLOCKED = new Set(bl.blockedUrls || []);
+  } catch (e) { window.SHARED_BLOCKED = window.SHARED_BLOCKED || new Set(); }
   LOADED = true;
 }
 

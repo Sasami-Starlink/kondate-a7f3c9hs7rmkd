@@ -401,6 +401,17 @@ def main():
         if r["url"] not in by_url:
             added += 1
         by_url[r["url"]] = r
+    # 家族共通ブロックリストのURLは収集対象から除外
+    blocked = set()
+    try:
+        blocked = set(json.load(open(os.path.join(HERE, "blocklist.json"),
+                                    encoding="utf-8")).get("blockedUrls", []))
+    except Exception:
+        pass
+    if blocked:
+        for u in list(by_url.keys()):
+            if u in blocked:
+                del by_url[u]
     recipes = cap_by_source(list(by_url.values()), MAX_PER_SOURCE)
 
     payload = {
