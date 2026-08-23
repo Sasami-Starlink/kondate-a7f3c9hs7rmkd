@@ -64,6 +64,7 @@ function isRealSide(r) {
 // ---- 5品を選ぶ ----
 function suggestSides(main) {
   const pool = POOL.filter((r) => r.type === "side" && r.id !== main.id && isRealSide(r) &&
+    (typeof isBlocked !== "function" || !isBlocked(r)) &&
     (typeof passesExclude === "function" ? passesExclude(r) : true));
   const mainR = classifyMainRichness(main);
   const wantSide = mainR === "kotteri" ? "sappari" : (mainR === "sappari" ? "koi" : "sappari");

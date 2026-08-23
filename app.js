@@ -85,6 +85,7 @@ function getSuggestions() {
   const pool = POOL.filter((r) =>
     r.type === state.type &&
     passesExclude(r) &&
+    (typeof isBlocked !== "function" || !isBlocked(r)) &&
     (state.type !== "side" || typeof isRealSide !== "function" || isRealSide(r)) &&
     (!f.genre || r.genre === f.genre) &&
     (!f.method || matchMethod(r, f.method))
@@ -160,7 +161,7 @@ function onSearchInput(v) {
 function searchResultsHtml() {
   const q = (state.query || "").trim();
   if (!q) return `<p class="mini">料理名やキーワードを入力してください（例：唐揚げ、ナムル、麻婆、ポテト）</p>`;
-  let hits = POOL.filter((r) => passesExclude(r) &&
+  let hits = POOL.filter((r) => passesExclude(r) && !isBlocked(r) &&
     ((r.title || "").includes(q) || (r.tags || []).some((t) => t.includes(q))));
   // タイトル先頭一致・完全一致を上位に
   hits.sort((a, b) => score(b, q) - score(a, q));
@@ -313,6 +314,7 @@ function renderSuggest() {
       <div class="card recipe" onclick="openDetail('${r.id}')">
         <div class="card-top">${badge(r.source)}<span class="tag">${r.type === "main" ? "主菜" : "副菜"}・${r.genre}</span>
           <button class="clipbtn ${clipped ? "on" : ""}" onclick="toggleClip('${r.id}', event)">${clipped ? "📎 クリップ済み" : "📎 クリップ"}</button>
+          <button class="clipbtn block" onclick="blockRecipe('${r.id}', event)" title="今後出さない">🚫</button>
         </div>
         <h3>${r.title}</h3>
         <p class="time">${time}${tags ? `　｜　${tags}` : ""}</p>
@@ -386,6 +388,7 @@ function renderFullDetail(r) {
     <div class="choices">
       <button class="btn add" onclick="toggleClip('${r.id}')">${isClipped(r.id) ? "📎 クリップ済み（外す）" : "📎 この料理をクリップ"}</button>
       <button class="btn add" onclick="addHistory('${r.id}')">🍳 作ったことにする</button>
+      <button class="btn ghost" onclick="blockRecipe('${r.id}')">🚫 今後出さない（非表示にする）</button>
       <button class="btn primary" onclick="go('suggest')">← 他の候補を見る</button>
       <button class="btn ghost" onclick="restart()">最初からやり直す</button>
     </div>`;
@@ -410,6 +413,7 @@ function renderLinkDetail(r) {
     <div class="choices">
       <button class="btn add" onclick="toggleClip('${r.id}')">${isClipped(r.id) ? "📎 クリップ済み（外す）" : "📎 この料理をクリップ"}</button>
       <button class="btn add" onclick="addHistory('${r.id}')">🍳 作ったことにする</button>
+      <button class="btn ghost" onclick="blockRecipe('${r.id}')">🚫 今後出さない（非表示にする）</button>
       <button class="btn primary" onclick="go('suggest')">← 他の候補を見る</button>
       <button class="btn ghost" onclick="restart()">最初からやり直す</button>
     </div>`;

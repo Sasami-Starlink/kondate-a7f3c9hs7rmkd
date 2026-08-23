@@ -145,6 +145,8 @@ ol.steps li { padding: 6px 0; font-size: 15px; }
 .clipbtn { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted);
   background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
 .clipbtn.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+.clipbtn.block { min-width: 34px; padding: 4px 8px; }
+.clipbtn.block:active { background: #7a2b1a; border-color: #7a2b1a; color: #fff; }
 .filters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
 .frow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .flabel { font-size: 12px; color: var(--muted); width: 48px; }

@@ -36,6 +36,24 @@ function clipCount() { return getClips().length; }
 function getSelected() { return lsGet("clipSel", {}); }
 function toggleSelected(id) { const s = getSelected(); s[id] = !s[id]; lsSet("clipSel", s); render(); }
 
+// ---------- 「今後出さない」個別レシピ非表示 ----------
+function getBlocked() { return lsGet("blocked", []); }
+function isBlocked(r) {
+  const b = getBlocked();
+  return b.some((x) => x.id === r.id || (x.url && r.url && x.url === r.url));
+}
+function blockRecipe(id, ev) {
+  if (ev) ev.stopPropagation();
+  const list = getBlocked();
+  if (list.some((x) => x.id === id)) return;
+  const r = POOL.find((x) => x.id === id) || getClips().find((c) => c.id === id);
+  list.push(r ? { id: r.id, title: r.title, url: r.url } : { id });
+  lsSet("blocked", list);
+  if (state.step === "detail") go("suggest"); else render(); // 詳細から押したら一覧へ戻す
+}
+function unblock(id) { lsSet("blocked", getBlocked().filter((x) => x.id !== id)); render(); }
+function blockCount() { return getBlocked().length; }
+
 // ---------- 苦手素材（動的除外） ----------
 function getExcludeTerms() { return lsGet("prefs", { excludeTerms: [] }).excludeTerms || []; }
 function addExclude(v) {
@@ -289,6 +307,12 @@ function renderPrefs(container) {
     <div class="card">
       <h3 class="sec">作った履歴</h3>
       ${hist}
+    </div>
+    <div class="card">
+      <h3 class="sec">今後出さないレシピ（${getBlocked().length}）</h3>
+      ${getBlocked().length
+        ? getBlocked().map((b) => `<div class="dish-row"><span>🚫 ${escapeHtml(b.title || "（レシピ）")}</span><button class="btn add sm" onclick="unblock('${b.id}')">解除</button></div>`).join("")
+        : `<span class="mini">まだありません。レシピの「🚫 今後出さない」で非表示にできます。</span>`}
     </div>
     <button class="btn ghost" onclick="go('welcome')">← ホーム</button>
   `;
